@@ -1,0 +1,183 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f5f7fa;
+  color: #20242a;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 230px;
+  background: #171a21;
+  color: white;
+  padding: 25px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar h2 {
+  margin: 0 0 35px;
+  font-size: 28px;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar button {
+  border: none;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+  background: transparent;
+  color: #d9dce2;
+  font-size: 15px;
+}
+
+.sidebar button:hover {
+  background: #292e38;
+  color: white;
+}
+
+.logout-button {
+  margin-top: auto;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  overflow-x: auto;
+}
+
+.main-content h1 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #68707c;
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: #626a76;
+}
+
+.card span {
+  font-size: 36px;
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  margin-top: 25px;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e6e8eb;
+}
+
+th {
+  background: #eceff3;
+}
+
+tbody tr:hover {
+  background: #f7f8fa;
+}
+
+.error {
+  background: #ffe4e4;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 25px;
+  padding: 12px;
+  background: #222731;
+  border-radius: 6px;
+}
+
+.user-info strong {
+  color: white;
+}
+
+.user-info span {
+  color: #aeb5c0;
+  font-size: 13px;
+}
+
+.action-form {
+  max-width: 600px;
+  margin: 25px 0;
+  padding: 22px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-form h3 {
+  margin-top: 0;
+}
+
+.action-form input,
+.action-form select,
+.action-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cfd4da;
+  border-radius: 5px;
+  font: inherit;
+}
+
+.action-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.action-form button {
+  margin-top: 8px;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
