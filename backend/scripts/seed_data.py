@@ -6,6 +6,7 @@ from app.models import (
     Hospital,
     Equipment,
     WorkOrder,
+    Technician,
     ServiceReport,
     EquipmentStatus,
     OrderPriority,
@@ -41,7 +42,7 @@ async def seed_data():
             serial_number="EQ-1001",
             model="Ventilator X1",
             status=EquipmentStatus.AVAILABLE,
-            charge_level=Decimal("100.00"),
+            charge_level=Decimal("15.00"),
             facility_id=hospital_1.id,
         )
 
@@ -61,12 +62,65 @@ async def seed_data():
             facility_id=hospital_2.id,
         )
 
-        session.add_all([
-            equipment_1,
-            equipment_2,
-            equipment_3,
-        ])
+        equipment_4 = Equipment(
+            serial_number="EQ-2002",
+            model="Patient Monitor M5",
+            status=EquipmentStatus.MAINTENANCE,
+            charge_level=Decimal("78.00"),
+            facility_id=hospital_2.id,
+        )
 
+        session.add_all(
+            [
+                equipment_1,
+                equipment_2,
+                equipment_3,
+                equipment_4,
+            ]
+        )
+
+        await session.flush()
+
+        technicians = [
+            Technician(
+                id=201,
+                name="John Carter",
+                facility_id=hospital_1.id,
+                supervisor_id=101,
+            ),
+            Technician(
+                id=202,
+                name="Sarah Miller",
+                facility_id=hospital_2.id,
+                supervisor_id=102,
+            ),
+            Technician(
+                id=203,
+                name="Michael Torres",
+                facility_id=hospital_1.id,
+                supervisor_id=101,
+            ),
+            Technician(
+                id=204,
+                name="Emily Brooks",
+                facility_id=hospital_2.id,
+                supervisor_id=102,
+            ),
+            Technician(
+                id=205,
+                name="Daniel Kim",
+                facility_id=hospital_1.id,
+                supervisor_id=101,
+            ),
+            Technician(
+                id=206,
+                name="Ashley Reed",
+                facility_id=hospital_2.id,
+                supervisor_id=102,
+            ),
+        ]
+
+        session.add_all(technicians)
         await session.flush()
 
         # Work Orders
@@ -94,11 +148,22 @@ async def seed_data():
             technician_id=201,
         )
 
-        session.add_all([
-            work_order_1,
-            work_order_2,
-            work_order_3,
-        ])
+        work_order_4 = WorkOrder(
+            title="Routine monitor inspection",
+            priority=OrderPriority.LOW,
+            status=OrderStatus.FAILED,
+            equipment_id=equipment_4.id,
+            technician_id=202,
+        )
+
+        session.add_all(
+            [
+                work_order_1,
+                work_order_2,
+                work_order_3,
+                work_order_4,
+            ]
+        )
 
         # Get the generated work-order IDs from PostgreSQL
         await session.flush()
@@ -116,7 +181,6 @@ async def seed_data():
         )
 
         session.add_all([report_1, report_2])
-
 
         await session.commit()
 

@@ -29,6 +29,7 @@ async def seed_users():
         await session.commit()
 
         print("Users seeded successfully.")
+        
 
 
 if __name__ == "__main__":

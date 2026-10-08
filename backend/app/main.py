@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from mangum import Mangum
 from app.routers.hospitals import router as hospitals_router
 from app.routers.equipment import router as equipment_router
 from app.routers.work_orders import router as work_orders_router
@@ -18,6 +19,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://d15jug2m8dejvt.cloudfront.net",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -33,3 +35,5 @@ app.include_router(auth_router)
 @app.get("/")
 async def root():
     return {"message": "MedFlow API is running"}
+
+handler = Mangum(app)

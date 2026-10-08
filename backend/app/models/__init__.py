@@ -8,6 +8,7 @@ from .hospital import Hospital
 from .equipment import Equipment
 from .service_report import ServiceReport
 from .work_order import WorkOrder
+from .technician import Technician
 from .user import User
 from .base import Base
 
@@ -22,4 +23,5 @@ __all__ = [
     "OrderStatus",
     "OrderPriority",
     "UserRole",
+    "Technician"
 ]
