@@ -6,7 +6,6 @@ from app.dependencies import get_db, get_current_user, require_role
 from app.models import Hospital, User, UserRole
 from app.schemas.hospital import HospitalCreate, HospitalRead
 
-
 router = APIRouter(
     prefix="/hospitals",
     tags=["hospitals"],
@@ -47,9 +46,7 @@ async def get_hospital(
 async def create_hospital(
     hospital_data: HospitalCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(
-        require_role(UserRole.CLINICAL_ADMIN)
-    ),
+    current_user: User = Depends(require_role(UserRole.CLINICAL_ADMIN)),
 ):
     hospital = Hospital(**hospital_data.model_dump())
 

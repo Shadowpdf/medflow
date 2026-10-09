@@ -15,13 +15,11 @@ oauth2_scheme = OAuth2PasswordBearer(
 )
 
 
-# 1. Define get_db FIRST
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
 
-# 2. Then get_current_user
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db),
@@ -58,7 +56,6 @@ async def get_current_user(
     return user
 
 
-# 3. Then role checking
 def require_role(*allowed_roles: UserRole):
 
     async def role_checker(
