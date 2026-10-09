@@ -28,12 +28,19 @@ function Dashboard({ onLogout }) {
     const [workOrderStatus, setWorkOrderStatus] = useState("Pending");
     const [workOrderEquipment, setWorkOrderEquipment] = useState("");
     const [workOrderTechnician, setWorkOrderTechnician] = useState("");
+    const [lowCharge, setLowCharge] = useState({ count: 0, devices: [], });
+    const [coLocation, setCoLocation] = useState({ count: 0, discrepancies: [], });
+    const [reliability, setReliability] = useState({ count: 0, metrics: [], });
+    const [maintenanceFlags, setMaintenanceFlags] = useState({ count: 0, hospitals: [], });
+    const [selectedSupervisor, setSelectedSupervisor] = useState("");
+    const [reportingLines, setReportingLines] = useState({ supervisor_id: null, count: 0, technicians: [], });
 
     const isAdmin = user?.role === "Clinical Admin";
     const isTechnician = user?.role === "Field Technician";
     const isAuditor = user?.role === "Auditor";
 
     useEffect(() => {
+
         const loadData = async () => {
             try {
                 const [
@@ -42,12 +49,20 @@ function Dashboard({ onLogout }) {
                     equipmentResponse,
                     workOrdersResponse,
                     serviceReportsResponse,
+                    lowChargeResponse,
+                    coLocationResponse,
+                    reliabilityResponse,
+                    maintenanceResponse,
                 ] = await Promise.all([
                     api.get("/auth/me"),
                     api.get("/hospitals/"),
                     api.get("/equipment/"),
                     api.get("/work-orders/"),
                     api.get("/service-reports/"),
+                    api.get("/analytics/low-charge"),
+                    api.get("/analytics/co-location"),
+                    api.get("/analytics/reliability"),
+                    api.get("/analytics/maintenance-flags"),
                 ]);
 
                 setUser(userResponse.data);
@@ -55,6 +70,11 @@ function Dashboard({ onLogout }) {
                 setEquipment(equipmentResponse.data);
                 setWorkOrders(workOrdersResponse.data);
                 setServiceReports(serviceReportsResponse.data);
+                setLowCharge(lowChargeResponse.data);
+                setCoLocation(coLocationResponse.data);
+                setReliability(reliabilityResponse.data);
+                setMaintenanceFlags(maintenanceResponse.data);
+
             } catch (error) {
                 console.error(error);
                 setError("Unable to load MedFlow data.");
@@ -65,6 +85,49 @@ function Dashboard({ onLogout }) {
 
         loadData();
     }, []);
+
+    useEffect(() => {
+        if (!selectedSupervisor) {
+            setReportingLines({
+                supervisor_id: null,
+                count: 0,
+                technicians: [],
+            });
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadReportingLines = async () => {
+            try {
+                const response = await api.get(
+                    `/analytics/reporting-lines/${selectedSupervisor}`
+                );
+
+                if (!cancelled) {
+                    setReportingLines(response.data);
+                }
+            } catch (error) {
+                console.error("Unable to load reporting lines:", error);
+
+                if (!cancelled) {
+                    setReportingLines({
+                        supervisor_id: null,
+                        count: 0,
+                        technicians: [],
+                    });
+
+                    setError("Unable to load reporting lines.");
+                }
+            }
+        };
+
+        loadReportingLines();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedSupervisor]);
 
     if (loading) {
         return <h2>Loading MedFlow...</h2>;
@@ -227,6 +290,243 @@ function Dashboard({ onLogout }) {
                     <span>{serviceReports.length}</span>
                 </div>
             </div>
+            <section className="analytics-section">
+                <h2>Equipment Analytics</h2>
+
+                <div className="card">
+                    <h3>Low Charge Alert</h3>
+                    <p>Active devices with less than 20% battery remaining</p>
+
+                    <h4>Device Count {lowCharge.count}</h4>
+
+                    {lowCharge.devices.length === 0 ? (
+                        <p>No active devices currently have low battery.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Serial Number</th>
+                                    <th>Model</th>
+                                    <th>Status</th>
+                                    <th>Charge</th>
+                                    <th>Hospital</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {lowCharge.devices.map((device) => (
+                                    <tr key={device.id}>
+                                        <td>{device.serial_number}</td>
+                                        <td>{device.model}</td>
+                                        <td>{device.status}</td>
+                                        <td>{device.charge_level}%</td>
+                                        <td>
+                                            {hospitals.find(
+                                                (hospital) =>
+                                                    hospital.id === device.facility_id
+                                            )?.name || `Hospital #${device.facility_id}`}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="card">
+                    <h3>Co-Location Discrepancies</h3>
+
+                    <p>
+                        Medical devices assigned to technicians
+                        from different hospitals
+                    </p>
+
+                    <h4>Device Count {coLocation.count}</h4>
+
+                    {coLocation.discrepancies.length === 0 ? (
+                        <p>No co-location discrepancies found.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Serial Number</th>
+                                    <th>Model</th>
+                                    <th>Equipment Hospital</th>
+                                    <th>Technician ID</th>
+                                    <th>Technician Hospital</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {coLocation.discrepancies.map((item, index) => (
+                                    <tr key={`${item.equipment_id}-${item.technician_id}-${index}`}>
+                                        <td>{item.serial_number}</td>
+                                        <td>{item.model}</td>
+
+                                        <td>
+                                            {hospitals.find(
+                                                (hospital) =>
+                                                    hospital.id === item.equipment_facility_id
+                                            )?.name || `Hospital #${item.equipment_facility_id}`}
+                                        </td>
+
+                                        <td>{item.technician_id}</td>
+
+                                        <td>
+                                            {hospitals.find(
+                                                (hospital) =>
+                                                    hospital.id === item.technician_facility_id
+                                            )?.name || `Hospital #${item.technician_facility_id}`}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+
+                <div className="card">
+                    <h3>Reliability Metrics</h3>
+
+                    <p>
+                        Completion and failure rates by equipment model
+                    </p>
+
+                    <h4>{reliability.count} Models</h4>
+
+                    {reliability.metrics.length === 0 ? (
+                        <p>No completed or failed work orders to analyze.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Equipment Model</th>
+                                    <th>Completed</th>
+                                    <th>Failed</th>
+                                    <th>Total</th>
+                                    <th>Completion Rate</th>
+                                    <th>Failure Rate</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {reliability.metrics.map((item) => (
+                                    <tr key={item.model}>
+                                        <td>{item.model}</td>
+                                        <td>{item.completed}</td>
+                                        <td>{item.failed}</td>
+                                        <td>{item.total}</td>
+                                        <td>{item.completion_rate}%</td>
+                                        <td>{item.failure_rate}%</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+                <div className="card">
+                    <h3>Maintenance Flags</h3>
+
+                    <p>
+                        Hospitals with more than 30% of their equipment
+                        currently in maintenance
+                    </p>
+
+                    <h4>{maintenanceFlags.count} Hospitals</h4>
+
+                    {maintenanceFlags.hospitals.length === 0 ? (
+                        <p>No hospitals currently exceed the 30% maintenance threshold.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Hospital</th>
+                                    <th>Total Equipment</th>
+                                    <th>In Maintenance</th>
+                                    <th>Maintenance Rate</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {maintenanceFlags.hospitals.map((hospital) => (
+                                    <tr key={hospital.hospital_id}>
+                                        <td>{hospital.hospital_name}</td>
+                                        <td>{hospital.total_equipment}</td>
+                                        <td>{hospital.maintenance_equipment}</td>
+                                        <td>{hospital.maintenance_percentage}%</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+                <div className="card">
+                    <h3>Reporting Lines</h3>
+
+                    <p>
+                        Technicians reporting to a supervisor
+                        who currently have active work orders
+                    </p>
+
+                    <label htmlFor="supervisor-select">
+                        Select Supervisor
+                    </label>
+
+                    <select
+                        id="supervisor-select"
+                        value={selectedSupervisor}
+                        onChange={(event) => {
+                            setSelectedSupervisor(event.target.value);
+                            setError("");
+                        }}
+                    >
+                        <option value="">Select supervisor</option>
+
+                        {[...new Set(hospitals.map(
+                            (hospital) => hospital.supervisor_id
+                        ))].map((supervisorId) => (
+                            <option key={supervisorId} value={supervisorId}>
+                                Supervisor #{supervisorId}
+                            </option>
+                        ))}
+                    </select>
+
+                    {selectedSupervisor && (
+                        <>
+                            <h4>{reportingLines.count} Active Technicians</h4>
+
+                            {reportingLines.technicians.length === 0 ? (
+                                <p>No technicians with active work orders found.</p>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Technician ID</th>
+                                            <th>Name</th>
+                                            <th>Hospital</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {reportingLines.technicians.map((technician) => (
+                                            <tr key={technician.technician_id}>
+                                                <td>{technician.technician_id}</td>
+                                                <td>{technician.technician_name}</td>
+                                                <td>
+                                                    {hospitals.find(
+                                                        (hospital) =>
+                                                            hospital.id === technician.facility_id
+                                                    )?.name || `Hospital #${technician.facility_id}`}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </>
+                    )}
+                </div>
+            </section>
         </>
     );
 

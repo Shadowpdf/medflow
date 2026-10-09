@@ -7,8 +7,8 @@ from app.routers.work_orders import router as work_orders_router
 from app.routers.service_reports import router as service_reports_router
 from app.routers.auth import router as auth_router
 from app.routers.health import router as health_router
+from app.routers.analytics import router as analytics_router
 from fastapi.middleware.cors import CORSMiddleware
-
 
 app = FastAPI(
     title="MedFlow API",
@@ -33,9 +33,12 @@ app.include_router(work_orders_router)
 app.include_router(service_reports_router)
 app.include_router(auth_router)
 app.include_router(health_router)
+app.include_router(analytics_router)
+
 
 @app.get("/")
 async def root():
     return {"message": "MedFlow API is running"}
+
 
 handler = Mangum(app)
