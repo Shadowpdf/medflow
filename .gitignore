@@ -33,3 +33,5 @@ Thumbs.db
 /backend/lambda_package/
 /backend/lambda-build/
 /backend/medflow-lambda*.zip
+backend/lambda-build-new/
+backend/medflow-lambda-*.zip
